@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if weather %}
+    <div class="row">
+        <!-- Current Weather Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Current Weather in Fethiye</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h2>{{ "%.1f"|format(weather.temperature) }}°C</h2>
+                        <p class="lead">{{ weather.description }}</p>
+                    </div>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-wind"></i> Wind: {{ weather.wind_speed }} km/h</li>
+                        <li><i class="fas fa-tint"></i> Humidity: {{ weather.humidity }}%</li>
+                        <li><i class="fas fa-temperature-low"></i> Feels like: {{ "%.1f"|format(weather.feels_like) }}°C</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clothing Recommendations -->
+        <div class="col-md-8 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">What to Wear Today</h5>
+                </div>
+                <div class="card-body">
+                    {% if recommendations %}
+                        <div class="row">
+                            <!-- Top -->
+                            <div class="col-md-6 mb-4">
+                                <div class="recommendation-section">
+                                    <h6 class="text-primary"><i class="fas fa-tshirt"></i> Top</h6>
+                                    <ul class="list-unstyled">
+                                        {% for item in recommendations.top %}
+                                            <li><i class="fas fa-check text-success"></i> {{ item }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Bottom -->
+                            <div class="col-md-6 mb-4">
+                                <div class="recommendation-section">
+                                    <h6 class="text-primary"><i class="fas fa-socks"></i> Bottom</h6>
+                                    <ul class="list-unstyled">
+                                        {% for item in recommendations.bottom %}
+                                            <li><i class="fas fa-check text-success"></i> {{ item }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Footwear -->
+                            <div class="col-md-6 mb-4">
+                                <div class="recommendation-section">
+                                    <h6 class="text-primary"><i class="fas fa-shoe-prints"></i> Footwear</h6>
+                                    <ul class="list-unstyled">
+                                        {% for item in recommendations.footwear %}
+                                            <li><i class="fas fa-check text-success"></i> {{ item }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Accessories -->
+                            <div class="col-md-6 mb-4">
+                                <div class="recommendation-section">
+                                    <h6 class="text-primary"><i class="fas fa-glasses"></i> Accessories</h6>
+                                    <ul class="list-unstyled">
+                                        {% for item in recommendations.accessories %}
+                                            <li><i class="fas fa-check text-success"></i> {{ item }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            Unable to generate clothing recommendations. Please try again later.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">
+        Unable to fetch weather data. Please try again later.
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.recommendation-section {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    height: 100%;
+}
+.recommendation-section h6 {
+    margin-bottom: 15px;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 8px;
+}
+.recommendation-section ul li {
+    margin-bottom: 8px;
+    padding-left: 20px;
+    position: relative;
+}
+.recommendation-section ul li i {
+    position: absolute;
+    left: 0;
+    top: 4px;
+}
+.card {
+    transition: transform 0.2s;
+}
+.card:hover {
+    transform: translateY(-5px);
+}
+</style>
+{% endblock %}

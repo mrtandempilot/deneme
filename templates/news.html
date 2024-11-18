@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h2 class="mb-0">Latest Weather News</h2>
+                </div>
+                <div class="card-body">
+                    {% if news_items %}
+                        <div class="row">
+                            {% for article in news_items %}
+                                <div class="col-md-6 mb-4">
+                                    <div class="card h-100 shadow-sm">
+                                        {% if article.image_url %}
+                                        <img src="{{ article.image_url }}" 
+                                             class="card-img-top" 
+                                             alt="{{ article.title }}"
+                                             style="height: 200px; object-fit: cover;">
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a href="{{ article.url }}" target="_blank" class="text-decoration-none">
+                                                    {{ article.title }}
+                                                </a>
+                                            </h5>
+                                            <p class="card-text">{{ article.description }}</p>
+                                            <p class="card-text">
+                                                <small class="text-muted">
+                                                    Published: {{ article.published_at.strftime('%Y-%m-%d %H:%M') }}
+                                                </small>
+                                            </p>
+                                            <a href="{{ article.url }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                                Read More
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            No news available at the moment. Please try again later.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card-title {
+    font-size: 1.1rem;
+    line-height: 1.4;
+}
+.card-text {
+    font-size: 0.9rem;
+}
+.card {
+    transition: transform 0.2s;
+}
+.card:hover {
+    transform: translateY(-5px);
+}
+.card-img-top {
+    border-bottom: 1px solid #eee;
+}
+</style>
+{% endblock %}

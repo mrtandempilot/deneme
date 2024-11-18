@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="weather-header text-center mb-4">
+                <h1 class="display-4 text-gradient">Istanbul Weather Forecast</h1>
+                <p class="lead text-muted">5-Day Weather Outlook</p>
+            </div>
+
+            {% if fetch_error %}
+            <div class="alert alert-warning m-3">
+                <i class="fas fa-exclamation-triangle"></i>
+                There was an error fetching the weather forecast. Please try again later.
+            </div>
+            {% endif %}
+
+            <div class="row g-4">
+                {% for forecast in forecasts %}
+                <div class="col-md">
+                    <div class="weather-card h-100">
+                        <div class="weather-card-header">
+                            <h3>{{ forecast.date.strftime('%A') }}</h3>
+                            <p class="date-label">{{ forecast.date.strftime('%B %d') }}</p>
+                        </div>
+                        
+                        <div class="weather-card-body">
+                            <img src="https://openweathermap.org/img/wn/{{ forecast.icon }}@2x.png" 
+                                 alt="{{ forecast.description }}" 
+                                 class="weather-icon">
+                            
+                            <div class="temperature-container">
+                                <div class="temp-day">{{ "%.1f"|format(forecast.temperature) }}°</div>
+                                <div class="temp-night">{{ "%.1f"|format(forecast.feels_like) }}°</div>
+                            </div>
+                            
+                            <div class="weather-description">
+                                {{ forecast.description|title }}
+                            </div>
+                            
+                            <div class="weather-details">
+                                <div class="detail wind">
+                                    <i class="fas fa-wind"></i>
+                                    <span>{{ "%.1f"|format(forecast.wind_speed) }} m/s</span>
+                                </div>
+                                <div class="detail humidity">
+                                    <i class="fas fa-tint"></i>
+                                    <span>{{ forecast.humidity }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="weather-info-card mt-5">
+                <div class="card-header gradient-bg">
+                    <h3 class="mb-0 text-white"><i class="fas fa-info-circle me-2"></i>Weather Information</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="text-primary"><i class="fas fa-chart-line me-2"></i>About the Forecast</h4>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-check text-success"></i> Daily and nightly temperatures</li>
+                                <li><i class="fas fa-check text-success"></i> Weather conditions and descriptions</li>
+                                <li><i class="fas fa-check text-success"></i> Wind speed measurements</li>
+                                <li><i class="fas fa-check text-success"></i> Humidity levels</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h4 class="text-primary"><i class="fas fa-book me-2"></i>Understanding the Display</h4>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-sun text-warning"></i> Day temperature shown in large text</li>
+                                <li><i class="fas fa-moon text-info"></i> Night temperature shown below</li>
+                                <li><i class="fas fa-cloud text-secondary"></i> Weather icons indicate conditions</li>
+                                <li><i class="fas fa-tachometer-alt text-danger"></i> Wind speed in meters per second</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <canvas id="temperatureChart"></canvas>
+
+            <script>
+                // Prepare the data for the chart
+                const dates = [{% for forecast in forecasts %}"{{ forecast.date.strftime('%d %b, %H:%M') }}", {% endfor %}];
+                const temperatures = [{% for forecast in forecasts %}{{ "%.1f"|format(forecast.temperature) }}, {% endfor %}];
+                const feels_like = [{% for forecast in forecasts %}{{ "%.1f"|format(forecast.feels_like) }}, {% endfor %}];
+
+                // Create the temperature chart
+                const ctx = document.getElementById('temperatureChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'Temperature (°C)',
+                            data: temperatures,
+                            borderColor: '#00B4DB',
+                            backgroundColor: 'rgba(0, 180, 219, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Feels Like (°C)',
+                            data: feels_like,
+                            borderColor: '#0083B0',
+                            backgroundColor: 'rgba(0, 131, 176, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        },
+                        elements: {
+                            point: {
+                                radius: 3,
+                                hoverRadius: 6
+                            }
+                        }
+                    }
+                });
+            </script>
+        </div>
+    </div>
+</div>
+
+<style>
+.text-gradient {
+    background: linear-gradient(45deg, #2193b0, #6dd5ed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0;
+}
+
+.weather-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.weather-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+}
+
+.weather-card-header {
+    background: linear-gradient(45deg, #2193b0, #6dd5ed);
+    color: white;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.weather-card-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.date-label {
+    margin: 0.5rem 0 0;
+    opacity: 0.9;
+    font-size: 0.9rem;
+}
+
+.weather-card-body {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.weather-icon {
+    width: 100px;
+    height: 100px;
+    margin: -1rem 0;
+}
+
+.temperature-container {
+    margin: 1rem 0;
+}
+
+.temp-day {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2193b0;
+    line-height: 1;
+}
+
+.temp-night {
+    font-size: 1.2rem;
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+.weather-description {
+    color: #444;
+    font-size: 1.1rem;
+    margin: 1rem 0;
+    min-height: 2.4em;
+}
+
+.weather-details {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.detail {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+}
+
+.detail i {
+    font-size: 1.2rem;
+}
+
+.wind i {
+    color: #48b1bf;
+}
+
+.humidity i {
+    color: #06beb6;
+}
+
+.gradient-bg {
+    background: linear-gradient(45deg, #2193b0, #6dd5ed);
+}
+
+.weather-info-card {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+}
+
+.feature-list li {
+    margin: 0.8rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.feature-list i {
+    width: 20px;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .weather-card {
+        margin-bottom: 1rem;
+    }
+    
+    .col-md {
+        margin-bottom: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

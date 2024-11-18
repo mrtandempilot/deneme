@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Upload Form -->
+    <div class="row mb-4">
+        <div class="col-md-6 offset-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Upload Photo</h5>
+                    <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" class="text-center">
+                        <div class="mb-3">
+                            <input class="form-control" type="file" name="photo" accept="image/*">
+                        </div>
+                        <small class="text-muted">Allowed file types: PNG, JPG, JPEG, GIF (Max size: 16MB)</small>
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Latest Weather -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Istanbul Weather</h5>
+                </div>
+                <div class="card-body">
+                    {% with forecast = WeatherForecast.query.order_by(WeatherForecast.date).first() %}
+                    {% if forecast %}
+                    <div class="text-center">
+                        <img src="https://openweathermap.org/img/wn/{{ forecast.icon }}@2x.png" alt="{{ forecast.description }}">
+                        <h3>{{ "%.1f"|format(forecast.temperature) }}°C</h3>
+                        <p>Feels like: {{ "%.1f"|format(forecast.feels_like) }}°C</p>
+                        <p>{{ forecast.description|title }}</p>
+                        <a href="{{ url_for('weather') }}" class="btn btn-outline-primary">View Full Forecast</a>
+                    </div>
+                    {% else %}
+                    <p class="text-center">Weather data not available</p>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Fethiye Weather</h5>
+                </div>
+                <div class="card-body">
+                    {% with forecast = FethiyeWeatherForecast.query.order_by(FethiyeWeatherForecast.date).first() %}
+                    {% if forecast %}
+                    <div class="text-center">
+                        <img src="https://openweathermap.org/img/wn/{{ forecast.icon }}@2x.png" alt="{{ forecast.description }}">
+                        <h3>{{ "%.1f"|format(forecast.temperature) }}°C</h3>
+                        <p>Feels like: {{ "%.1f"|format(forecast.feels_like) }}°C</p>
+                        <p>{{ forecast.description|title }}</p>
+                        <a href="{{ url_for('fethiye_weather') }}" class="btn btn-outline-info">View Full Forecast</a>
+                    </div>
+                    {% else %}
+                    <p class="text-center">Weather data not available</p>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Latest News -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Latest Weather News</h5>
+                </div>
+                <div class="card-body">
+                    {% if weather_news %}
+                    <ul class="list-unstyled">
+                        {% for item in weather_news %}
+                        <li class="mb-3">
+                            <h6><a href="{{ item.url }}" target="_blank" class="text-decoration-none">{{ item.title }}</a></h6>
+                            <small class="text-muted">{{ item.published_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <a href="{{ url_for('news') }}" class="btn btn-outline-success">View All News</a>
+                    {% else %}
+                    <p class="text-center">No news available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">Latest Sports News</h5>
+                </div>
+                <div class="card-body">
+                    {% if sports_news %}
+                    <ul class="list-unstyled">
+                        {% for item in sports_news %}
+                        <li class="mb-3">
+                            <h6><a href="{{ item.url }}" target="_blank" class="text-decoration-none">{{ item.title }}</a></h6>
+                            <small class="text-muted">{{ item.published_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <a href="{{ url_for('sports') }}" class="btn btn-outline-warning">View All Sports News</a>
+                    {% else %}
+                    <p class="text-center">No sports news available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Photo Gallery -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Photo Gallery</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Upload Form -->
+                    <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" class="mb-4">
+                        <div class="input-group">
+                            <input type="file" class="form-control" name="photo" accept="image/*" required>
+                            <button type="submit" class="btn btn-primary">Upload</button>
+                        </div>
+                        <small class="text-muted">Allowed file types: PNG, JPG, JPEG, GIF (Max size: 16MB)</small>
+                    </form>
+                    
+                    <!-- Photo Grid -->
+                    {% if photos %}
+                    <div class="row row-cols-1 row-cols-md-4 g-4">
+                        {% for photo in photos %}
+                        <div class="col">
+                            <div class="card h-100 shadow-sm">
+                                <img src="{{ url_for('static', filename='uploads/' + photo.filename) }}" 
+                                     class="card-img-top" alt="{{ photo.filename }}"
+                                     style="height: 200px; object-fit: cover;">
+                                <div class="card-body">
+                                    <p class="card-text">
+                                        <small class="text-muted">Uploaded: {{ photo.upload_date.strftime('%Y-%m-%d %H:%M') }}</small>
+                                    </p>
+                                    <a href="{{ url_for('download_file', filename=photo.filename) }}" 
+                                       class="btn btn-sm btn-outline-primary">Download</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-center">No photos uploaded yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.bg-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3) !important;
+}
+
+.bg-info {
+    background: linear-gradient(45deg, #17a2b8, #117a8b) !important;
+}
+
+.bg-success {
+    background: linear-gradient(45deg, #28a745, #1e7e34) !important;
+}
+
+.bg-warning {
+    background: linear-gradient(45deg, #ffc107, #d39e00) !important;
+}
+
+.card-header {
+    border-bottom: none;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-info:hover,
+.btn-outline-success:hover,
+.btn-outline-warning:hover {
+    transform: scale(1.05);
+}
+
+.list-unstyled li:hover {
+    background-color: rgba(0,0,0,0.03);
+    border-radius: 5px;
+    padding: 5px;
+    margin: -5px;
+}
+</style>
+{% endblock %}

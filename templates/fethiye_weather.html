@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="weather-header text-center mb-4">
+                <h1 class="display-4 text-gradient">Fethiye Weather Forecast</h1>
+                <p class="lead text-muted">5-Day Weather Outlook for Beautiful Fethiye</p>
+            </div>
+
+            {% if fetch_error %}
+            <div class="alert alert-warning m-3">
+                <i class="fas fa-exclamation-triangle"></i>
+                There was an error fetching the weather forecast. Please try again later.
+            </div>
+            {% endif %}
+
+            <div class="row g-4">
+                {% for forecast in forecasts %}
+                <div class="col-md">
+                    <div class="weather-card h-100">
+                        <div class="weather-card-header">
+                            <h3>{{ forecast.date.strftime('%A') }}</h3>
+                            <p class="date-label">{{ forecast.date.strftime('%B %d') }}</p>
+                        </div>
+                        
+                        <div class="weather-card-body">
+                            <img src="https://openweathermap.org/img/wn/{{ forecast.icon }}@2x.png" 
+                                 alt="{{ forecast.description }}" 
+                                 class="weather-icon">
+                            
+                            <div class="temperature-container">
+                                <div class="temp-day">{{ "%.1f"|format(forecast.temperature) }}°</div>
+                                <div class="temp-night">{{ "%.1f"|format(forecast.feels_like) }}°</div>
+                            </div>
+                            
+                            <div class="weather-description">
+                                {{ forecast.description|title }}
+                            </div>
+                            
+                            <div class="weather-details">
+                                <div class="detail wind">
+                                    <div class="wind-info">
+                                        <i class="fas fa-wind"></i>
+                                        <span>{{ "%.1f"|format(forecast.wind_speed) }} m/s</span>
+                                    </div>
+                                    <div class="windsock-container">
+                                        <div class="windsock" style="--wind-speed: {{ forecast.wind_speed }}">
+                                            <div class="pole"></div>
+                                            <div class="sock"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="detail humidity">
+                                    <i class="fas fa-tint"></i>
+                                    <span>{{ forecast.humidity }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title text-center mb-4">Temperature Trend</h5>
+                            <canvas id="temperatureChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="weather-info-card mt-5">
+                <div class="card-header gradient-bg">
+                    <h3 class="mb-0 text-white"><i class="fas fa-info-circle me-2"></i>Fethiye Weather Information</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="text-primary"><i class="fas fa-umbrella-beach me-2"></i>About Fethiye</h4>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-sun text-warning"></i> Mediterranean climate</li>
+                                <li><i class="fas fa-water text-info"></i> Beautiful coastal location</li>
+                                <li><i class="fas fa-mountain text-success"></i> Surrounded by mountains</li>
+                                <li><i class="fas fa-ship text-primary"></i> Perfect for water activities</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h4 class="text-primary"><i class="fas fa-chart-line me-2"></i>Weather Details</h4>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-temperature-high text-danger"></i> Day temperatures in large text</li>
+                                <li><i class="fas fa-temperature-low text-info"></i> Night temperatures below</li>
+                                <li><i class="fas fa-cloud-sun text-warning"></i> Weather conditions with icons</li>
+                                <li><i class="fas fa-wind text-success"></i> Wind speed and humidity data</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Prepare the data for the chart
+    const dates = [{% for forecast in forecasts %}"{{ forecast.date.strftime('%d %b, %H:%M') }}", {% endfor %}];
+    const temperatures = [{% for forecast in forecasts %}{{ "%.1f"|format(forecast.temperature) }}, {% endfor %}];
+    const feels_like = [{% for forecast in forecasts %}{{ "%.1f"|format(forecast.feels_like) }}, {% endfor %}];
+
+    // Create the temperature chart
+    const ctx = document.getElementById('temperatureChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Temperature (°C)',
+                data: temperatures,
+                borderColor: '#00B4DB',
+                backgroundColor: 'rgba(0, 180, 219, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            },
+            {
+                label: 'Feels Like (°C)',
+                data: feels_like,
+                borderColor: '#0083B0',
+                backgroundColor: 'rgba(0, 131, 176, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            elements: {
+                point: {
+                    radius: 3,
+                    hoverRadius: 6
+                }
+            }
+        }
+    });
+</script>
+
+<style>
+.text-gradient {
+    background: linear-gradient(45deg, #00B4DB, #0083B0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0;
+}
+
+.weather-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.weather-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+}
+
+.weather-card-header {
+    background: linear-gradient(45deg, #00B4DB, #0083B0);
+    color: white;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.weather-card-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.date-label {
+    margin: 0.5rem 0 0;
+    opacity: 0.9;
+    font-size: 0.9rem;
+}
+
+.weather-card-body {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.weather-icon {
+    width: 100px;
+    height: 100px;
+    margin: -1rem 0;
+}
+
+.temperature-container {
+    margin: 1rem 0;
+}
+
+.temp-day {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #00B4DB;
+    line-height: 1;
+}
+
+.temp-night {
+    font-size: 1.2rem;
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+.weather-description {
+    color: #444;
+    font-size: 1.1rem;
+    margin: 1rem 0;
+    min-height: 2.4em;
+}
+
+.weather-details {
+    display: flex;
+    justify-content: space-around;
+    padding: 0.5rem;
+    margin-top: 1rem;
+}
+
+.detail {
+    text-align: center;
+}
+
+.detail i {
+    font-size: 1.2rem;
+    margin-bottom: 0.25rem;
+}
+
+.wind-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.windsock-container {
+    position: relative;
+    width: 60px;
+    height: 40px;
+    margin: 0.5rem auto;
+}
+
+.windsock {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    --rotation: calc(var(--wind-speed) * 15deg);
+}
+
+.windsock .pole {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 4px;
+    height: 40px;
+    background: #666;
+    border-radius: 2px;
+}
+
+.windsock .sock {
+    position: absolute;
+    left: 4px;
+    top: 5px;
+    width: 40px;
+    height: 12px;
+    background: linear-gradient(90deg, #ff4b4b 0%, #ff6b6b 100%);
+    border-radius: 6px;
+    transform-origin: left center;
+    transform: rotate(var(--rotation));
+    transition: transform 0.3s ease;
+    animation: wave 2s infinite ease-in-out;
+}
+
+@keyframes wave {
+    0%, 100% {
+        transform: rotate(calc(var(--rotation) - 5deg));
+    }
+    50% {
+        transform: rotate(calc(var(--rotation) + 5deg));
+    }
+}
+
+.wind-strength {
+    font-size: 0.8rem;
+    color: #666;
+    text-align: center;
+    margin-top: 0.25rem;
+}
+
+.gradient-bg {
+    background: linear-gradient(45deg, #00B4DB, #0083B0);
+}
+
+.weather-info-card {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+}
+
+.feature-list li {
+    margin: 0.8rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.feature-list i {
+    width: 20px;
+    text-align: center;
+}
+
+.windsock[style*="--wind-speed:"] .sock {
+    background: linear-gradient(90deg, #92d192 0%, #68c968 100%);
+}
+
+.windsock[style*="--wind-speed:'5'"] .sock,
+.windsock[style*="--wind-speed:'6'"] .sock,
+.windsock[style*="--wind-speed:'7'"] .sock,
+.windsock[style*="--wind-speed:'8'"] .sock {
+    background: linear-gradient(90deg, #ffd700 0%, #ffc200 100%);
+}
+
+.windsock[style*="--wind-speed:'9'"] .sock,
+.windsock[style*="--wind-speed:'10'"] .sock,
+.windsock[style*="--wind-speed:'11'"] .sock,
+.windsock[style*="--wind-speed:'12'"] .sock {
+    background: linear-gradient(90deg, #ff8c00 0%, #ff6b00 100%);
+}
+
+.windsock[style*="--wind-speed:'13'"] .sock,
+.windsock[style*="--wind-speed:'14'"] .sock,
+.windsock[style*="--wind-speed:'15'"] .sock {
+    background: linear-gradient(90deg, #ff4b4b 0%, #ff0000 100%);
+}
+
+@media (max-width: 768px) {
+    .weather-card {
+        margin-bottom: 1rem;
+    }
+    
+    .col-md {
+        margin-bottom: 1.5rem;
+    }
+}
+</style>
+{% endblock %}
