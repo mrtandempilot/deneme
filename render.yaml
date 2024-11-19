@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: gallery-app
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.0
+    disk:
+      name: uploads
+      mountPath: /uploads
+      sizeGB: 1
